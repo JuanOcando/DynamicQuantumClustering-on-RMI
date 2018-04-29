@@ -1,11 +1,13 @@
 #import libraries
 import numpy as np 
+from backports import *
 #import scipy as sp
 #import sympy as sy
 import nibabel as nib
 import matplotlib.pyplot as plt
+import scipy as stats
 import sys
-from backports import *
+
 
 def show_slices(slices):
 	fig, axes = plt.subplots(1,len(slices))
@@ -24,28 +26,39 @@ def get_voxel_slices(data,x,y,z):
 	print(slice_z.shape)
 	return slice_x, slice_y, slice_z
 
-def one_dim_wave_funct(data,sigma):
+def one_dim_wave_funct(data,sigma,takezero = False, samples = 1000 ):
 
 	#To do: Reduce decimals
 
-	time =  np.linspace(0,600, num=200)
-	W = np.zeros(200)
-	spec = np.zeros(200)
-	V = np.zeros(200)
+	time =  np.linspace(-600,600, num= samples)
+	W = np.zeros(samples)
+	spec = np.zeros(samples)
+	V = np.zeros(samples)
 
 #	for k in range(time.shape[0]):
 #		print(time[k])
 	
+	if takezero:
+		for k in range(time.shape[0]):
 
-	for k in range(time.shape[0]):
-
-		for i in range(data.shape[0]):
+			for i in range(data.shape[0]):
 			
-	 		for j in range(data.shape[1]):
+	 			for j in range(data.shape[1]):
 	 		
-			 	#if(data[i,j]>0):
-			 	W[k] = W[k] +  np.exp(-(time[k]-data[i,j])*(time[k]-data[i,j])/(2*sigma*sigma))
-			 	spec[k] = spec[k] + (time[k]-data[i,j])*(time[k]-data[i,j])*np.exp(-(time[k]-data[i,j])*(time[k]-data[i,j])/(2*sigma*sigma))
+			 		
+			 		W[k] = W[k] +  np.exp(-(time[k]-data[i,j])*(time[k]-data[i,j])/(2*sigma*sigma))
+			 		spec[k] = spec[k] + (time[k]-data[i,j])*(time[k]-data[i,j])*np.exp(-(time[k]-data[i,j])*(time[k]-data[i,j])/(2*sigma*sigma))
+	else:
+		for k in range(time.shape[0]):
+
+			for i in range(data.shape[0]):
+			
+	 			for j in range(data.shape[1]):
+	 		
+			 		if(data[i,j]>0):
+			 			W[k] = W[k] +  np.exp(-(time[k]-data[i,j])*(time[k]-data[i,j])/(2*sigma*sigma))
+			 			spec[k] = spec[k] + (time[k]-data[i,j])*(time[k]-data[i,j])*np.exp(-(time[k]-data[i,j])*(time[k]-data[i,j])/(2*sigma*sigma))
+
 
 
 	for k in range(time.shape[0]):
@@ -80,15 +93,15 @@ def minima(V):
 
 
 
-epi_img = nib.load('Brats17_CBICA_AQJ_1_t1.nii.gz')
-#epi_img = nib.load('Brats17_CBICA_AQJ_1_t2.nii.gz')
+#epi_img = nib.load('Brats17_CBICA_AQJ_1_t1.nii.gz')
+epi_img = nib.load('Brats17_CBICA_AQJ_1_t2.nii.gz')
 #epi_img = nib.load('Brats17_CBICA_AQJ_1_t1ce.nii.gz')
 
 epi_img_data = epi_img.get_data()
 
 slice_0, slice_1, slice_2 = get_voxel_slices(epi_img_data,123,121,90)
 
-t, W, V = one_dim_wave_funct(slice_0,1)
+t, W, V = one_dim_wave_funct(slice_2,10,takezero=False)
 
 plt.subplot(211)
 plt.plot(t,W)
